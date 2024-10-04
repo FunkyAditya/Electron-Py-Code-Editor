@@ -1,6 +1,6 @@
 # Python-Code-Editor
 
-To run the editor, type the following commands 
+To run the editor, run the following commands 
 
 ```bash
   npm install 
