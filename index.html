@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Code Editor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="title">
+        <h1>Python Code Editor</h1>
+    </div>
+    <div class="editor">
+        <textarea class="text-area" placeholder="Write your code here..." id="code-area"></textarea>
+        <button class="run" onclick="runPython()">Run</button>
+    </div>
+    <div class="console">
+        <h2>Output:</h2>
+        <div class="console-output" id="output">
+            <!-- Output will be displayed here -->
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+    <script>
+        let pyodideReady = false;
+        let pyodide;
+
+        async function loadPyodideInstance() {
+            pyodide = await loadPyodide();
+            pyodideReady = true;
+        }
+        loadPyodideInstance();
+
+        async function runPython() {
+            if (!pyodideReady) {
+                document.getElementById("output").innerText = "Pyodide is still loading...";
+                return;
+            }
+
+            let pythonCode = document.getElementById("code-area").value;
+
+            const redirectStdout = `
+import sys
+from io import StringIO
+
+# Redirect stdout
+sys.stdout = buffer = StringIO()
+
+# Your code
+try:
+    exec('''${pythonCode.replace(/'/g, "\\'")}''')
+except Exception as e:
+    buffer.write(str(e))
+
+# Get output from stdout
+buffer.getvalue()
+`;
+
+            try {
+                let result = await pyodide.runPythonAsync(redirectStdout);
+
+                document.getElementById("output").innerText = result || "No Output";
+            } catch (error) {
+                document.getElementById("output").innerText = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
